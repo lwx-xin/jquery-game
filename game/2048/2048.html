@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css">
+	<meta http-equiv="Content-Script-Type" content="text/javascript">
+	<style>	
+		html:hover{
+			cursor:pointer;
+		}
+		
+		body{
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+			-khtml-user-select: none;
+			user-select: none;
+		}
+	
+		.hexagon{
+			display:inline-block;
+		}
+		.hexagon .bar-rotate-left{
+			width:50px;
+			height:58px;
+			overflow:hidden;
+			transform:rotate(60deg);
+			display:inline-block;
+		}
+		.hexagon .bar-rotate-right{
+			width:50px;
+			height:58px;
+			overflow:hidden;
+			transform:rotate(60deg);
+			display:inline-block;
+		}
+		.hexagon .bar-horizontal{
+			width:50px;
+			height:58px;
+			background:#F0F0F0;
+			transform:rotate(-120deg);
+			display:inline-block;
+			
+			text-align:center;
+			line-height:53px;
+		}
+		
+		.bg-color {
+			background:#00CCFF !important;
+		}
+		
+		.width-auto{
+			width:400px;
+		}
+		
+		#mainDiv{
+			width:400px;
+			margin:0 auto;
+		}
+		
+		#promptDiv{
+			width:350px;
+			margin:0 auto;
+		}
+
+	</style>
+</head>
+
+<body>
+		
+	<div id="mainDiv">
+		<div class="width-auto" style="margin-left:84px;">
+			<div class="hexagon" position-y="1" position-x="1">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="1" position-x="2">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="1" position-x="3">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="1" position-x="4">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="width-auto" style="margin-left:56px;margin-top:-15px;">
+			<div class="hexagon" position-y="2" position-x="1">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="2" position-x="2">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="2" position-x="3">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="2" position-x="4">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="2" position-x="5">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="width-auto" style="margin-left:28px;margin-top:-15px;">
+			<div class="hexagon" position-y="3" position-x="1">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="3" position-x="2">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="3" position-x="3">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="3" position-x="4">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="3" position-x="5">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="3" position-x="6">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="width-auto" style="margin-top:-15px;">
+			<div class="hexagon" position-y="4" position-x="1">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="4" position-x="2">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="4" position-x="3">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="4" position-x="4">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="4" position-x="5">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="4" position-x="6">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="4" position-x="7">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="width-auto" style="margin-left:28px;margin-top:-15px;">
+			<div class="hexagon" position-y="5" position-x="1">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="5" position-x="2">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="5" position-x="3">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="5" position-x="4">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="5" position-x="5">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="5" position-x="6">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="width-auto" style="margin-left:56px;margin-top:-15px;">
+			<div class="hexagon" position-y="6" position-x="1">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="6" position-x="2">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="6" position-x="3">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="6" position-x="4">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="6" position-x="5">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="width-auto" style="margin-left:84px;margin-top:-15px;">
+		
+			<div class="hexagon" position-y="7" position-x="1">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="7" position-x="2">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="7" position-x="3">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="7" position-x="4">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<center style="margin-top:50px;">得分：<span id="score">0</span></center>
+		
+	<div id="promptDiv" style="margin-top:50px;">
+	
+		<div class="width-auto" style="margin-left:112px;">
+			<div class="hexagon" position-y="1" position-x="1">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="1" position-x="2">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	
+		<div class="width-auto" style="margin-left:84px;margin-top:-15px;">
+			<div class="hexagon" position-y="2" position-x="1">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="2" position-x="2">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="2" position-x="3">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	
+		<div class="width-auto" style="margin-left:112px;margin-top:-15px;">
+			<div class="hexagon" position-y="3" position-x="1">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+			<div class="hexagon" position-y="3" position-x="2">
+				<div class="bar-rotate-right">
+					<div class="bar-rotate-left">
+						<div class="bar-horizontal"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+	</div>
+
+</body>
+
+<script src="../js/jquery.min.js"></script>
+<script>
+
+var source = [2,4,8,16,32,64,128,256,512,1024];
+var maxNumber = 2;
+var score = 0;
+
+var pointeArround = {
+	"1-1":[{"x":2,"y":1},{"x":1,"y":2},{"x":2,"y":2}],
+	"2-1":[{"x":1,"y":1},{"x":3,"y":1},{"x":2,"y":2},{"x":3,"y":2}],
+	"3-1":[{"x":2,"y":1},{"x":4,"y":1},{"x":3,"y":2},{"x":4,"y":2}],
+	"4-1":[{"x":3,"y":1},{"x":4,"y":2},{"x":5,"y":2}],
+	
+	"1-2":[{"x":2,"y":2},{"x":1,"y":1},{"x":1,"y":3},{"x":2,"y":3}],
+	"2-2":[{"x":1,"y":2},{"x":3,"y":2},{"x":2,"y":1},{"x":1,"y":1},{"x":2,"y":3},{"x":3,"y":3}],
+	"3-2":[{"x":2,"y":2},{"x":4,"y":2},{"x":3,"y":1},{"x":2,"y":1},{"x":3,"y":3},{"x":4,"y":3}],
+	"4-2":[{"x":3,"y":2},{"x":5,"y":2},{"x":4,"y":1},{"x":3,"y":1},{"x":4,"y":3},{"x":5,"y":3}],
+	"5-2":[{"x":4,"y":2},{"x":4,"y":1},{"x":5,"y":3},{"x":6,"y":3}],
+	
+	"1-3":[{"x":2,"y":3},{"x":1,"y":2},{"x":1,"y":4},{"x":2,"y":4}],
+	"2-3":[{"x":1,"y":3},{"x":3,"y":3},{"x":2,"y":2},{"x":1,"y":2},{"x":2,"y":4},{"x":3,"y":4}],
+	"3-3":[{"x":2,"y":3},{"x":4,"y":3},{"x":3,"y":2},{"x":2,"y":2},{"x":3,"y":4},{"x":4,"y":4}],
+	"4-3":[{"x":3,"y":3},{"x":5,"y":3},{"x":4,"y":2},{"x":3,"y":2},{"x":4,"y":4},{"x":5,"y":4}],
+	"5-3":[{"x":4,"y":3},{"x":6,"y":3},{"x":5,"y":2},{"x":4,"y":2},{"x":5,"y":4},{"x":6,"y":4}],
+	"6-3":[{"x":5,"y":3},{"x":5,"y":2},{"x":6,"y":4},{"x":7,"y":4}],
+	
+	"1-4":[{"x":2,"y":4},{"x":1,"y":3},{"x":1,"y":5}],
+	"2-4":[{"x":1,"y":4},{"x":3,"y":4},{"x":2,"y":3},{"x":1,"y":3},{"x":2,"y":5},{"x":1,"y":5}],
+	"3-4":[{"x":2,"y":4},{"x":4,"y":4},{"x":3,"y":3},{"x":2,"y":3},{"x":3,"y":5},{"x":2,"y":5}],
+	"4-4":[{"x":3,"y":4},{"x":5,"y":4},{"x":4,"y":3},{"x":3,"y":3},{"x":4,"y":5},{"x":3,"y":5}],
+	"5-4":[{"x":4,"y":4},{"x":6,"y":4},{"x":5,"y":3},{"x":4,"y":3},{"x":5,"y":5},{"x":4,"y":5}],
+	"6-4":[{"x":5,"y":4},{"x":7,"y":4},{"x":6,"y":3},{"x":5,"y":3},{"x":6,"y":5},{"x":5,"y":5}],
+	"7-4":[{"x":6,"y":4},{"x":6,"y":3},{"x":6,"y":5}],
+	
+	"1-5":[{"x":2,"y":5},{"x":1,"y":4},{"x":2,"y":4},{"x":1,"y":6}],
+	"2-5":[{"x":1,"y":5},{"x":3,"y":5},{"x":2,"y":4},{"x":3,"y":4},{"x":2,"y":6},{"x":1,"y":6}],
+	"3-5":[{"x":2,"y":5},{"x":4,"y":5},{"x":3,"y":4},{"x":4,"y":4},{"x":3,"y":6},{"x":2,"y":6}],
+	"4-5":[{"x":3,"y":5},{"x":5,"y":5},{"x":4,"y":4},{"x":5,"y":4},{"x":4,"y":6},{"x":3,"y":6}],
+	"5-5":[{"x":4,"y":5},{"x":6,"y":5},{"x":5,"y":4},{"x":6,"y":4},{"x":5,"y":6},{"x":4,"y":6}],
+	"6-5":[{"x":5,"y":5},{"x":6,"y":4},{"x":7,"y":4},{"x":5,"y":6}],
+	
+	"1-6":[{"x":2,"y":6},{"x":1,"y":5},{"x":2,"y":5},{"x":1,"y":7}],
+	"2-6":[{"x":1,"y":6},{"x":3,"y":6},{"x":2,"y":5},{"x":3,"y":5},{"x":2,"y":7},{"x":1,"y":7}],
+	"3-6":[{"x":2,"y":6},{"x":4,"y":6},{"x":3,"y":5},{"x":4,"y":5},{"x":3,"y":7},{"x":2,"y":7}],
+	"4-6":[{"x":3,"y":6},{"x":5,"y":6},{"x":4,"y":5},{"x":5,"y":5},{"x":4,"y":7},{"x":3,"y":7}],
+	"5-6":[{"x":4,"y":6},{"x":5,"y":5},{"x":6,"y":5},{"x":4,"y":7}],
+	
+	"1-7":[{"x":2,"y":7},{"x":1,"y":6},{"x":2,"y":6}],
+	"2-7":[{"x":1,"y":7},{"x":3,"y":7},{"x":2,"y":6},{"x":3,"y":6}],
+	"3-7":[{"x":2,"y":7},{"x":4,"y":7},{"x":3,"y":6},{"x":4,"y":6}],
+	"4-7":[{"x":3,"y":7},{"x":4,"y":6},{"x":5,"y":6}]
+}
+
+$(function(){
+	let moveBlock = createBlock();
+	move(moveBlock);
+});
+
+
+function getRandom(){
+	let source1 = new Array();
+	for(let i=0;i<source.length;i++){
+		if(source[i]<=maxNumber){
+			source1.push(source[i]);
+		}
+	}
+
+	let index = Math.floor(Math.random()*source1.length);
+	let num = source1[index];
+	
+	return num;
+}
+
+function createBlock(){
+	//生成随机数字
+	let number = getRandom();
+	let ele = $("#promptDiv [position-y='2'][position-x='2']");
+	ele.find(".bar-horizontal").html(number);
+	return ele;
+}
+
+
+
+function move(ele){
+	let thisNumber = ele.find(".bar-horizontal").html();
+	
+	let left = ele.offset().left;
+	let top = ele.offset().top;
+	let divEle = null;
+	let cloneEle = null;
+	ele.drag({
+		startDown: function (data) {
+		
+			//在原来的位置复制一个新的元素
+			cloneEle = ele.clone();
+			cloneEle.css("position","");
+			cloneEle.css("z-index","");
+			//cloneEle.removeClass("bg-color");
+			cloneEle.find(".bar-horizontal").html("");
+			ele.after(cloneEle);
+			
+			ele.css({"pointer-events":"none"});
+			ele.css("z-index","1");
+			ele.find(".bar-horizontal").addClass("bg-color");
+			
+			$("#mainDiv .hexagon").mouseover(function(e){
+				divEle = $(this);
+			});
+			
+			$("#mainDiv .hexagon").mouseout(function(e){
+				divEle = null;
+			});
+			
+		},
+		startMove: function (data) {
+			console.log("startmove");
+		},
+		overMove: function (data) {
+			if(divEle==null || divEle.find(".bar-horizontal").html()!=""){//未放到正确的位置
+				ele.animate({"left": left, "top": top},150,function(){
+					//清除当前移动的那个方块
+					$(this).remove();
+					
+					//为复制的那个方块重新绑定事件
+					cloneEle.find(".bar-horizontal").html(thisNumber);
+					move(cloneEle);
+				});
+			} else {
+				ele.animate({"left": divEle.offset().left, "top": divEle.offset().top},100,function(){
+					//清除当前移动的那个方块
+					$(this).remove();
+					
+					//给放下的方块赋值
+					divEle.find(".bar-horizontal").html(thisNumber);
+					divEle.find(".bar-horizontal").addClass("bg-color");
+					
+					//判断数字是否合并
+					numberMerge(divEle);
+					
+					//重新生成新的数字
+					let moveBlock = createBlock();
+					move(moveBlock);
+				});
+			}
+			$("#mainDiv .hexagon").off();
+		}
+	});
+}
+
+function arroundSameNumber(ele){
+	let x = ele.attr("position-x");
+	let y = ele.attr("position-y");
+	//当前元素的数字
+	let thisNumber = $("#mainDiv [position-x='"+x+"'][position-y='"+y+"'] .bar-horizontal").html();
+	//当前元素相连的元素
+	let aroundArr = pointeArround[x+"-"+y];
+	
+	let willMergeElementArr = null;
+	//判断相连的元素的数字是否与当前元素的数字相同，相同就合并
+	for(let i=0;i<aroundArr.length;i++){
+		let arroundX = aroundArr[i].x;
+		let arroundY = aroundArr[i].y;
+		let divEle = $("#mainDiv [position-x='"+arroundX+"'][position-y='"+arroundY+"']");
+		if(divEle.find(".bar-horizontal").html() == thisNumber){
+			if(willMergeElementArr==null){
+				willMergeElementArr = new Array();
+			}
+			willMergeElementArr.push(divEle);
+		}
+	}
+	return willMergeElementArr;
+}
+
+//判断数字是否合并
+function numberMerge(ele){
+	//合并之后的数字
+	let num = Number(ele.find(".bar-horizontal").html());
+	
+	let willMergeElementArr = arroundSameNumber(ele);
+	if(willMergeElementArr==null){
+		return false;
+	} else if(willMergeElementArr.length==1){
+		//当前元素合并到相连的元素
+		let arroundEle = willMergeElementArr[0];
+		let arr = arroundSameNumber(arroundEle);
+		if(arr==null){
+			return false;
+		} else if(arr.length==2){
+			num = num*2;
+			let arroundEle1;
+			let arroundEle2 = arr[0];
+			let arroundEle3 = arr[1];
+			if(ele.attr("position-x")!=arroundEle2.attr("position-x") 
+				|| ele.attr("position-y")!=arroundEle2.attr("position-y")){
+				arroundEle1 = arroundEle2;
+			} else if(ele.attr("position-x")!=arroundEle3.attr("position-x") 
+				|| ele.attr("position-y")!=arroundEle3.attr("position-y")){
+				arroundEle1 = arroundEle3;
+			} else {
+				return false;
+			}
+			
+			let cloneEle = ele.clone();
+			cloneEle.css("z-index","");
+			cloneEle.find(".bar-horizontal").removeClass("bg-color");
+			cloneEle.find(".bar-horizontal").html("");
+			ele.after(cloneEle);
+			
+			ele.css("position","absolute");
+			ele.css("z-index","1");
+			ele.animate({"left": arroundEle1.offset().left, "top": arroundEle1.offset().top},1000,function(){
+				ele.remove();
+			});
+			/*****************************/
+			let cloneEle1 = arroundEle.clone();
+			cloneEle1.css("z-index","");
+			cloneEle1.find(".bar-horizontal").removeClass("bg-color");
+			cloneEle1.find(".bar-horizontal").html("");
+			arroundEle.after(cloneEle1);
+			
+			arroundEle.css("position","absolute");
+			arroundEle.css("z-index","1");
+			arroundEle.animate({"left": arroundEle1.offset().left, "top": arroundEle1.offset().top},1000,function(){
+				score = score + 2;
+				arroundEle.remove();
+				arroundEle1.find(".bar-horizontal").html(num);
+				numberMerge(arroundEle1);
+				$("#score").html(score);
+			});
+		} else if(arr.length>2){
+			numberMerge(arroundEle);
+		}
+
+	} else if(willMergeElementArr.length>1) {
+		num = num*2;
+		
+		//相连的元素合并到当前元素
+		for(let i=0;i<willMergeElementArr.length;i++){
+			let arroundEle = willMergeElementArr[i];
+			
+			let cloneEle = arroundEle.clone();
+			cloneEle.css("z-index","");
+			cloneEle.find(".bar-horizontal").removeClass("bg-color");
+			cloneEle.find(".bar-horizontal").html("");
+			arroundEle.after(cloneEle);
+			
+			arroundEle.css("position","absolute");
+			arroundEle.css("z-index","1");
+			arroundEle.animate({"left": ele.offset().left, "top": ele.offset().top},1000,function(){
+				score = score + 1;
+				arroundEle.remove();
+				ele.find(".bar-horizontal").html(num);
+				if(i==willMergeElementArr.length-1){
+					numberMerge(ele);
+				}
+				$("#score").html(score);
+			});
+		}
+	}
+	
+	if(num>maxNumber){
+		maxNumber = num;
+	}
+}
+
+$.fn.extend({
+	//startdown: 点击元素
+	//startmove: 鼠标移动
+	//overmove: 鼠标放开
+	drag: function(param){
+		let ele = this;
+		let returnData = new Object();
+		$(this).mousedown(function(e){
+			
+			$(ele).css("position","absolute");
+			
+			//鼠标按下时的鼠标位置
+			let pointStartX = e.clientX;
+			let pointStartY = e.clientY;
+			
+			//鼠标按下时的元素位置
+			let eleStart = new Array();
+			$(ele).each(function(){
+				let obj = new Object();
+				obj["left"] = $(this).offset().left;
+				obj["top"] = $(this).offset().top;
+				eleStart.push(obj);
+			});
+			returnData["eleStart"] = eleStart;
+			
+			$(document).mousemove(function(e1){
+				//当前鼠标位置
+				let pointNowX = e1.clientX;
+				let pointNowY = e1.clientY;
+				
+				$(ele).each(function(i){
+					let eleX = pointNowX - pointStartX + eleStart[i].left;
+					let eleY = pointNowY - pointStartY + eleStart[i].top;
+					$(this).css("left", eleX+"px");
+					$(this).css("top", eleY+"px");
+				});
+                param.startMove && param.startMove(returnData);
+			});
+			
+			$(document).mouseup(function(){
+				$(document).off();
+				param.overMove && param.overMove(returnData);
+			});
+            param.startDown && param.startDown(returnData);
+		});
+		return this;
+	}
+});
+
+</script>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<title>贪吃蛇</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css">
+	<meta http-equiv="Content-Script-Type" content="text/javascript">
+	<style>
+		.snakeMain{
+			width:70%;
+			float:left;
+		}
+
+		.mainTable{
+			display:inline;
+		}
+
+		.startBefor{
+			font-size:100px;
+		}
+
+		.main-table td{
+			padding:0px;
+			margin:0px;
+		}
+
+		.square-div{
+			width:5px;
+			height:5px;
+			background-color:#FFF;
+			border:1px solid #BBB;
+			float:left;
+			margin:0px;
+			padding:0px;
+		}
+
+		.foodTd{
+			background-color:green;
+		}
+		
+		.foodTd-warn{
+			background-color:red;
+		}
+
+		.snakeTd{
+			background-color:#000;
+		}
+
+		.snakeHeadTd{
+			border-radius:50%;
+		}
+
+		.fractionDiv{
+			font-size:40px;
+			border:1px solid #BBB;
+			text-align:center;
+			width:100px;
+			height:45px;
+			line-height:45px;
+		}
+
+		.fractionMain{
+			float:left;
+			margin-top:100px;
+		}
+	</style>
+</head>
+
+<body>
+
+<div class="snakeMain">
+<p id="startBefor" class="startBefor"><p>
+<table id="mainTable" class="main-table" border="0" cellspacing="0" cellspacing="0">
+</table>
+</div>
+
+
+<div class="fractionMain">
+	<div class="fractionDiv" id="fractionDiv">0000</div>
+</div>
+
+</body>
+
+<script src="../js/jquery.min.js"></script>
+<script>
+
+var width=50;
+var height=50;
+var snakeObj = null;
+var foodSpeed = 2;//食物刷新速度
+var foodInterval;//食物定时器
+var snakeInterval;//贪吃蛇时器
+var gameStatus = "start";
+
+$(function(){
+	$("#mainTable").hide();
+	
+	var startInt = 3;
+	var count = 0;
+	$("#startBefor").html(startInt);
+	$("#startBefor").css("opacity",1);
+	var gameStart = setInterval(function(){
+		if(count==9){
+			count = 1;
+			startInt = startInt-1;
+		} else {
+			count = count+1;
+		}
+		var opacityValue = 1-(count/10);
+		$("#startBefor").html(startInt);
+		$("#startBefor").css("opacity", opacityValue);
+		
+		if(startInt==0){
+			clearInterval(gameStart);
+			$("#mainTable").show();
+			$("#startBefor").hide();
+			start();
+		}
+	}, 100);
+
+});
+
+function start(){
+	//初始化地图网格
+	initTable();
+	//初始化贪吃蛇对象
+	initSnake();
+	
+	//显示贪吃蛇
+	showSnake();
+	
+	//初始化食物定时器(清除食物,创建食物)
+	initFoodInterval();
+	//初始化贪吃蛇移动定时器
+	initSnakeInterval();
+	
+	//键盘监听-控制贪吃蛇方向
+	keydown();
+}
+
+//初始化地图网格
+function initTable(){
+	
+	var tableHtml = "";
+	for(var y=1;y<=height;y++){
+		tableHtml+="<tr>";
+		for(var x=1;x<=width;x++){
+			tableHtml+="<td position-x='"+x+"' position-y='"+y+"'>";
+			tableHtml+="	<div class='square-div'></div>";
+			tableHtml+="</td>";
+		}
+		tableHtml+="</tr>";
+	}
+	$("#mainTable").html(tableHtml);
+}
+
+//键盘监听-控制贪吃蛇方向
+function keydown(){
+	
+	//↑38，↓40，←37，→39,Esc27
+	$(document).keydown(function(event){
+		var keyCode = event.keyCode
+		var direction = snakeObj.direction;//贪吃蛇前进方向
+		
+		if(keyCode=="37" && direction!="right"){//左
+			snakeObj["direction"]="left"//贪吃蛇方向
+		} else if(keyCode=="38" && direction!="down"){//上
+			snakeObj["direction"]="top"//贪吃蛇方向
+		} else if(keyCode=="39" && direction!="left"){//右
+			snakeObj["direction"]="right"//贪吃蛇方向
+		} else if(keyCode=="40" && direction!="top"){//下
+			snakeObj["direction"]="down"//贪吃蛇方向
+		} else if(keyCode=="87"){//W:贪吃蛇加速
+			var snakeSpeed = formatNumber(snakeObj.snakeSpeed)+10;//贪吃蛇速度
+			snakeObj["snakeSpeed"]=snakeSpeed;
+			changeSnakeInterval(snakeSpeed);
+		} else if(keyCode=="83"){//S:贪吃蛇减速
+			var snakeSpeed = formatNumber(snakeObj.snakeSpeed)-10;//贪吃蛇速度
+			snakeObj["snakeSpeed"]=snakeSpeed;
+			changeSnakeInterval(snakeSpeed);
+		} else if(keyCode=="27" && gameStatus=="start"){//停止游戏
+			gameStatus="stop";
+			stop();
+		} else if(keyCode=="27" && gameStatus=="stop"){//停止游戏
+			gameStatus="start";
+			reStart();
+		}
+	});
+}
+
+//创建食物
+var timer;
+function createFood(){
+	console.log("createFood");
+	
+	var x = Math.floor(Math.random()*width);
+	var y = Math.floor(Math.random()*height);
+	//console.log("x:"+x+"  y:"+y);
+	var foodTd = selectTd(x,y);
+	//console.log(foodTd);
+	foodTd.find(".square-div").addClass("foodTd");
+	
+	var time = (10/foodSpeed)*1000;
+	setTimeout("initFoodWarnInterva()", time/2);
+}
+
+//清除食物
+function clearFood(){
+	console.log("clearFood");
+	
+	$(".foodTd").fadeTo(10,1);
+	$("#mainTable .square-div").removeClass("foodTd");
+	$("#mainTable .square-div").removeClass("foodTd-warn");
+	
+	clearInterval(foodWarnInterva);
+}
+
+//初始化贪吃蛇对象
+function initSnake(){
+	
+	snakeObj = new Object();
+	snakeObj["snakeLength"]=3;//贪吃蛇长度
+	snakeObj["direction"]="top"//贪吃蛇方向
+	snakeObj["fraction"]=0//贪吃蛇分数
+	snakeObj["eatCount"]=0;//吃到食物的个数
+	snakeObj["snakeSpeed"]=100;//贪吃蛇速度
+	
+	var headPosition_X = 25;
+	var headPosition_Y = 48;
+	var headPosition = new Object();
+	headPosition[headPosition_X] = headPosition_Y;
+	
+	//贪吃蛇身体坐标
+	var positionArr = [];
+	for(var i=1;i<=snakeObj.snakeLength-1;i++){
+		var obj = new Object();
+		obj[headPosition_X] = formatNumber(headPosition_Y)+i;
+		positionArr.push(obj);
+	}
+	positionArr.unshift(headPosition);
+	snakeObj["positionArr"]=positionArr;
+}
+
+//显示贪吃蛇
+function showSnake(){
+	
+	if(snakeObj==null){
+		initSnake();
+	}
+	$(".square-div").removeClass("snakeTd");
+	$(".square-div").removeClass("snakeHeadTd");
+	$.each(snakeObj.positionArr, function(index, positionMap){
+		$.each(positionMap, function(x,y){
+			var snakeTd = selectTd(x,y);
+			//console.log({x:y});
+			snakeTd.find(".square-div").addClass("snakeTd");
+			if(index==0){
+				snakeTd.find(".square-div").addClass("snakeHeadTd");
+			}
+		});
+	});
+}
+
+//贪吃蛇移动
+function snakeMove(){
+	
+	var positionArr = snakeObj.positionArr;//贪吃蛇身体坐标
+	var direction = snakeObj.direction;//贪吃蛇前进方向
+	var snakeLength = snakeObj.snakeLength;//贪吃蛇长度
+	
+	positionArr.pop();//移除最后一个元素
+	var headPosition = positionArr[0];
+	var xPosition = 0;
+	var yPosition = 0;
+	$.each(headPosition,function(k,v){
+		xPosition=k; yPosition=v;
+	});
+
+	if("top"==direction){//上
+		yPosition = formatNumber(yPosition)-1;
+	} else if("down"==direction){//下
+		yPosition = formatNumber(yPosition)+1;
+	} else if("left"==direction){//左
+		xPosition = formatNumber(xPosition)-1;
+	} else if("right"==direction){//右
+		xPosition = formatNumber(xPosition)+1;
+	}
+	
+	headPosition = {};
+	headPosition[xPosition] = yPosition;
+	
+	positionArr.unshift(headPosition);
+	snakeObj["positionArr"] = positionArr;
+	
+	//判断贪吃蛇是否吃到食物--加分数，加吃到食物的个数，加长度
+	eatFood(xPosition,yPosition);
+	
+	//判断贪吃蛇是否碰到地图边缘以及自己
+	var status = isGameOver(xPosition,yPosition);
+	if(status){
+		//停止游戏
+		stop();
+		//$("body").html("<h1><center>GAME OVER</center></h1>");
+		return false;
+	}
+	
+	//显示贪吃蛇
+	showSnake();
+}
+
+//初始化贪吃蛇移动定时器
+function initSnakeInterval(){
+	console.log("initSnakeInterval");
+	
+	var snakeSpeed = snakeObj.snakeSpeed;//贪吃蛇速度
+	snakeInterval = setInterval(function(){
+		//贪吃蛇移动
+		snakeMove();
+	}, (10/snakeSpeed)*1000);
+}
+
+//初始化食物定时器(清除食物,创建食物)
+function initFoodInterval(){
+	console.log("initFoodInterval");
+	
+	clearFood();
+	createFood();
+	foodInterval = setInterval(function(){
+		clearFood();
+		createFood();
+	}, (10/foodSpeed)*1000);
+}
+
+//设置食物刷新速度
+function changeFoodIntervalSpeed(level){
+	console.log("changeFoodIntervalSpeed");
+	
+	foodSpeed = level;
+	console.log("食物刷新速度:"+level);
+	//关闭食物刷新定时器
+	clearInterval(foodInterval);
+	//重新打开食物刷新定时器
+	initFoodInterval();
+}
+
+//设置贪吃蛇移动速度
+function changeSnakeInterval(level){
+	console.log("changeSnakeInterval");
+	
+	snakeObj["snakeSpeed"]=level;
+	//关闭贪吃蛇移动定时器
+	clearInterval(snakeInterval);
+	//重新打开贪吃蛇移动定时器
+	initSnakeInterval();
+}
+
+//判断贪吃蛇是否碰到地图边缘以及自己
+function isGameOver(snakeHead_X, snakeHead_Y){
+
+	if(formatNumber(snakeHead_X)<=0 || formatNumber(snakeHead_Y)<=0
+		|| formatNumber(snakeHead_X)>width || formatNumber(snakeHead_Y)>height){
+		return true;
+	}
+	var positionArr = snakeObj.positionArr;//贪吃蛇身体坐标
+	var status= false;
+	$.each(positionArr, function(index, positionMap){
+		if(index!=0 && positionMap[snakeHead_X]==snakeHead_Y){
+			status = true;
+			return false;
+		}
+	});
+	return status;
+}
+
+//判断贪吃蛇是否吃到食物--加分数，加吃到食物的个数，加长度
+function eatFood(snakeHead_X, snakeHead_Y){
+	
+	var foodTd = selectTd(snakeHead_X,snakeHead_Y);
+	
+	if(foodTd.find("div.square-div").hasClass("foodTd")){//吃到了食物
+		
+		//吃到食物的个数
+		var eatCount = formatNumber(snakeObj.eatCount);
+		eatCount = eatCount+1;
+		snakeObj["eatCount"] = eatCount;
+		
+		//贪吃蛇分数
+		var fraction = formatNumber(snakeObj.fraction);
+		fraction = fraction+ 1 + parseInt(eatCount/10);
+		snakeObj["fraction"]=fraction;
+		//显示分数
+		$("#fractionDiv").html(prefixInteger(fraction,4));
+		
+		//分数每加50分食物刷新速度+1,贪吃蛇移动速度+1
+		if(fraction%50==0){
+			//设置食物刷新速度(+1)
+			foodSpeed = formatNumber(foodSpeed)+1;
+			
+			//设置贪吃蛇移动速度(+1)
+			var snakeSpeed = snakeObj.snakeSpeed;
+			snakeSpeed = snakeSpeed+1;
+			changeSnakeInterval(snakeSpeed);
+		}
+		
+		//重置食物刷新时间
+		changeFoodIntervalSpeed(foodSpeed)
+		
+		//增加贪吃蛇长度
+		addSnakeLength();
+	}
+}
+
+function prefixInteger(number,length){
+	return ("0000000000"+number).substr(-length);
+}
+
+function addSnakeLength(){
+	//身体坐标
+	var positionArr = snakeObj.positionArr;
+
+	//尾巴坐标(最后一个)
+	var tailPosition = positionArr[positionArr.length-1];
+	//判断该坐标上下左右哪个方向有身体，就在反方向追加一格
+	var tailPosition_X = 0;
+	var tailPosition_Y = 0;
+	$.each(tailPosition,function(x,y){
+		tailPosition_X = formatNumber(x);
+		tailPosition_Y = formatNumber(y);
+	});
+	
+	//top
+	var topTd = selectTd(tailPosition_X, (tailPosition_Y-1));
+	//down
+	var downTd = selectTd(tailPosition_X, (tailPosition_Y+1));
+	//left
+	var leftTd = selectTd((tailPosition_X-1), tailPosition_Y);
+	//right
+	var rightTd = selectTd((tailPosition_X+1), tailPosition_Y);
+	
+	var obj = new Object();
+	if(topTd.find("div.square-div").hasClass("snakeTd")){
+		obj[tailPosition_X] = tailPosition_Y+1;
+	} else if(downTd.find("div.square-div").hasClass("snakeTd")){
+		obj[tailPosition_X] = tailPosition_Y-1;
+	} else if(leftTd.find("div.square-div").hasClass("snakeTd")){
+		obj[tailPosition_X+1] = tailPosition_Y;
+	} else if(rightTd.find("div.square-div").hasClass("snakeTd")){
+		obj[tailPosition_X-1] = tailPosition_Y;
+	}
+	positionArr.push(obj);
+	snakeObj["positionArr"]=positionArr;
+}
+
+function selectTd(x,y){
+	
+	return $("#mainTable [position-x='"+x+"'][position-y='"+y+"']");
+}
+
+function reStart(){
+	initFoodInterval();
+	initSnakeInterval();
+}
+
+//停止游戏
+function stop(){
+	console.log("stop");
+	
+	//关闭定时器
+	clearInterval(foodInterval);
+	clearInterval(snakeInterval);
+}
+var foodWarnInterva;
+function initFoodWarnInterva(){
+	$(".foodTd").addClass("foodTd-warn");
+
+	var opacity = 1;
+	foodWarnInterva = setInterval(function(){
+		if(opacity<=0){
+			opacity=1;
+		}
+		opacity = opacity-0.1;
+		$(".foodTd").fadeTo(10,opacity);
+	}, 100);
+}
+
+function formatNumber(data){
+	if(data==""||data==null){
+		return 0;
+	}
+	return Number(data);
+}
+
+</script>
+</html>

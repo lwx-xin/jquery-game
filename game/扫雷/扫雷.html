@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<title>扫雷</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css">
+	<meta http-equiv="Content-Script-Type" content="text/javascript">
+	<style>
+		.main-table td{
+			padding:0px;
+			margin:0px;
+		}
+		
+		html:hover{
+			cursor:url('../pointer.png'),auto;
+		}
+		
+		.square-div{
+			width:20px;
+			height:20px;
+			border:1px solid #BBB;
+			float:left;
+			margin:0px;
+			padding:0px;
+			text-align:center;
+			font-size:15px;
+			/**color:gray;**/
+		}
+		
+		.hide{
+			display:none;
+		}
+		
+		.bg-white{
+			background-color:white;
+		}
+		
+		.bg-gray{
+			background-color:gray;
+		}
+		
+		.mine{
+			<!-- background-color:red; -->
+		}
+		
+	</style>
+</head>
+
+<body>
+
+<table id="mainTable" class="main-table" border="0" cellspacing="0" cellspacing="0">
+</table>
+</body>
+
+<script src="../js/jquery.min.js"></script>
+<script>
+
+var width=15;
+var height=15;
+var mineCount=30;//地雷个数
+var mainPositionArr = new Array();
+var positionArr = new Array();
+
+$(function(){
+	
+	initTable();
+	
+	//生成地雷
+	createMine();
+	
+	//生成提示数字
+	//showAnswer()
+	
+	$("td").mousedown(function(e){
+		
+		if(e.which==1){
+			leftClick(this);
+		} else if(e.which==2){
+			
+		} else if(e.which==3){
+			rightClick(this);
+		}
+	});
+	
+	$("*").contextmenu(function(){
+		return false;
+	});
+
+});
+
+function leftClick(tdElement){
+	var x = $(tdElement).attr("position-x");
+	var y = $(tdElement).attr("position-y");
+	
+	if(isMine(x,y)){
+		showAnswer();
+		alert("GAME OVER");
+	} else {
+		//周围8格有多少颗雷
+		var number = arouindMineCount(x,y);
+		//显示数字
+		showNumber(x,y,number);
+		
+		//如果周围8格没有一颗雷
+		if(number==0){
+			//清除相连的无数字方块
+			clearNullBlock(x,y);
+		}
+		
+		if(isWin()){
+			alert("win");
+		}
+	}
+}
+
+function rightClick(tdElement){
+	
+	var x = $(tdElement).attr("position-x");
+	var y = $(tdElement).attr("position-y");
+	var divEle = $("[position-x='"+x+"'][position-y='"+y+"'] div");
+	
+	if(divEle.html()=="🚩"){
+		divEle.html("");
+	} else {
+		var flgCount = $("td div:contains('🚩')").length;//🚩的个数
+		if(flgCount<mineCount){
+			divEle.html("🚩");
+		}
+	}
+	
+	var flg = true;
+	$(".mine").each(function(){
+		if($(this).html()!="🚩"){
+			flg=false;
+		}
+	});
+	
+	if(flg){
+		alert("win");
+	}
+}
+
+function showAnswer(){
+	for(var y=0;y<height;y++){
+		for(var x=0;x<width;x++){
+			var number = arouindMineCount(x,y);
+			//显示数字
+			if(number==0){
+				number="";
+			}
+			$("[position-x='"+x+"'][position-y='"+y+"'] div").html(number);//显示周围雷的个数
+			
+			if(isMine(x,y)){
+				$("[position-x='"+x+"'][position-y='"+y+"'] div").css("background-color","red");
+			}
+		}
+	}
+}
+
+//初始化地图网格
+function initTable(){
+	
+	var tableHtml = "";
+	for(var y=0;y<height;y++){
+		tableHtml+="<tr>";
+		for(var x=0;x<width;x++){
+			tableHtml+="<td position-x='"+x+"' position-y='"+y+"'>";
+			tableHtml+="	<div class='square-div bg-gray'>";
+			tableHtml+="	</div>";
+			tableHtml+="</td>";
+			
+			positionArr.push({"x":x,"y":y});
+		}
+		tableHtml+="</tr>";
+	}
+	$("#mainTable").html(tableHtml);
+}
+
+//生成地雷
+function createMine(){
+	for(var i=0;i<mineCount;i++){
+		var index = Math.floor(Math.random()*positionArr.length);
+		var mainPosition = positionArr[index];
+		
+		var x = mainPosition.x;
+		var y = mainPosition.y;
+		$("[position-x='"+x+"'][position-y='"+y+"'] div").addClass("mine");
+		
+		mainPositionArr.push(mainPosition);
+		positionArr.remove(mainPosition);
+	}
+}
+
+//生成提示数字
+function createNumber(){
+	for(var y=0;y<height;y++){
+		for(var x=0;x<width;x++){
+			var number = arouindMineCount(x,y);
+			//显示数字
+			showNumber(x,y,number);
+		}
+	}
+}
+
+//显示数字
+function showNumber(x,y,number){
+	if(number==0){
+		number="";
+	}
+	$("[position-x='"+x+"'][position-y='"+y+"'] div").html(number);//显示周围雷的个数
+	$("[position-x='"+x+"'][position-y='"+y+"'] div").removeClass("bg-gray");//去掉灰色样式
+	$("[position-x='"+x+"'][position-y='"+y+"'] div").addClass("bg-white");//添加白色样式
+}
+
+//判断是否是地雷
+function isMine(x,y){
+	var divEle = $("[position-x='"+x+"'][position-y='"+y+"'] div");
+	if(divEle==null){
+		return 0;
+	}
+	
+	if(divEle.hasClass("mine")){
+		return 1;
+	}
+	return 0;
+}
+
+//周围8格有多少颗雷
+function arouindMineCount(x,y){
+
+	var count = 0;
+	
+	var arr = arouindMinePositionArr(x,y);
+	for(var i=0;i<arr.length;i++){
+		var x1 = arr[i].x;
+		var y1 = arr[i].y;
+		if(isMine(x1,y1)){
+			count++;
+		}
+	}
+	
+	return count;
+}
+
+//当前坐标周围的方块坐标
+function arouindMinePositionArr(x,y){
+	var arr = new Array();
+	
+	//上
+	arr.push({"x":formatNumber(x),"y":formatNumber(y)-1});
+	//下
+	arr.push({"x":formatNumber(x),"y":formatNumber(y)+1});
+	//左
+	arr.push({"x":formatNumber(x)-1,"y":formatNumber(y)});
+	//右
+	arr.push({"x":formatNumber(x)+1,"y":formatNumber(y)});
+	//左上
+	arr.push({"x":formatNumber(x)-1,"y":formatNumber(y)-1});
+	//左下
+	arr.push({"x":formatNumber(x)-1,"y":formatNumber(y)+1});
+	//右上
+	arr.push({"x":formatNumber(x)+1,"y":formatNumber(y)-1});
+	//右下
+	arr.push({"x":formatNumber(x)+1,"y":formatNumber(y)+1});
+	
+	var arr1 = new Array();
+	//移除地图之外的坐标
+	for(var i=0;i<arr.length;i++){
+		var tdEle = $("[position-x='"+arr[i].x+"'][position-y='"+arr[i].y+"']");
+		if(tdEle!=null && tdEle.length!=0){
+			arr1.push({"x":arr[i].x,"y":arr[i].y});
+		}
+	}
+	
+	return arr1;
+}
+
+//当前坐标周围的方块坐标（未点击的方块坐标）
+function arouindMinePositionArr_noClick(x,y){
+	var arr = arouindMinePositionArr(x,y);
+	
+	var arr1 = new Array();
+	//移除已经点击过的坐标
+	for(var i=0;i<arr.length;i++){
+		var divEle = $("[position-x='"+arr[i].x+"'][position-y='"+arr[i].y+"'] div");
+		if(divEle.hasClass("bg-gray")){
+			arr1.push({"x":arr[i].x,"y":arr[i].y});
+		}
+	}
+	return arr1;
+}
+
+function clearNullBlock(x,y){
+	var queue = arouindMinePositionArr_noClick(x,y);
+	
+	while(queue!=null && queue.length>0){
+		var positionObj = queue.shift();//拿出并删除第一个元素
+		var x1 = positionObj.x;
+		var y1 = positionObj.y;
+		
+		//周围8格有多少颗雷
+		var mineCount = arouindMineCount(x1,y1);
+		if(mineCount==0){
+			//显示数字
+			showNumber(x1,y1,mineCount);
+			
+			var queue1 = arouindMinePositionArr_noClick(x1,y1);
+			queue.pushAll(queue1,true);
+		}
+	}
+}
+
+function isStop(queue){
+	var obj = null;
+	
+	if(queue==null || queue.length==0){
+		return obj;
+	}
+	
+	for(var i=0;i<queue.length;i++){
+		var obj1 = queue[i];
+		
+		var divEle = $("[position-x='"+obj1.x+"'][position-y='"+obj1.y+"'] div");
+		
+		if(divEle.hasClass("bg-gray") && arouindMineCount(obj1.x,obj1.y)==0){
+			obj=obj1;
+			break;
+		}
+	}
+	return obj;
+}
+
+function isWin(){
+	var flg = true;
+	A:for(var y=0;y<height;y++){
+		for(var x=0;x<width;x++){
+			var divEle = $("[position-x='"+x+"'][position-y='"+y+"'] div");
+			if(divEle.hasClass("bg-gray") && !isMine(x,y)){
+				flg = false;
+				break A;
+			}
+		}
+	}
+	return flg;
+}
+
+function formatNumber(data){
+	if(data==""||data==null){
+		return 0;
+	}
+	return Number(data);
+}
+
+//移除数组中的元素
+Array.prototype.remove = function(data){
+	if(data==null){
+		return this;
+	}
+	var arr = new Array();
+	for(var i=0;i<this.length;i++){
+		var bool = true;
+		if(this[i]!=data && JSON.stringify(this[i])!=JSON.stringify(data)){
+			arr.push(this[i]);
+		}
+	}
+	return arr;
+}
+
+//数组中添加多个元素,去重
+Array.prototype.pushAll = function(arr,bool){
+	if(arr!=null && arr.size!=0){
+		for(var i=0;i<arr.length;i++){
+			if(bool){//需要去重
+				if(!this.contains(arr[i])){
+					this.push(arr[i]);
+				}
+			} else {
+				this.push(arr[i]);
+			}
+		}
+	}
+}
+
+//数组是否包含元素
+Array.prototype.contains = function(data){
+	if(this==null || this.length==0){
+		return false;
+	}
+	var bool = false;
+	for(var i=0;i<this.length;i++){
+		if(this[i]==data || JSON.stringify(this[i])==JSON.stringify(data)){
+			bool = true;
+			break;
+		}
+	}
+	return bool;
+}
+
+
+</script>
+</html>

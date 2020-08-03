@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<title>俄罗斯方块</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css">
+	<meta http-equiv="Content-Script-Type" content="text/javascript">
+	<style>	
+		
+		.main-table td{
+			padding:0px;
+			margin:0px;
+		}
+		
+		.square-div{
+			width:15px;
+			height:15px;
+			background-color:#FFF;
+			border:1px solid #BBB;
+			float:left;
+			margin:0px;
+			padding:0px;
+		}
+		
+		.move-block{
+			background-color:green;
+		}
+		
+		.no-move-block{
+			background-color:gray;
+		}
+		
+		.prompt-table td{
+			padding:0px;
+			margin:0px;
+		}
+	</style>
+</head>
+
+<body>
+	<div>
+		<table>
+			<tr>
+				<td>
+					<table id="mainTable" class="main-table" border="0" cellspacing="0" cellspacing="0"></table>
+				</td>
+				<td valign="top">
+					<table id="promptTable" class="prompt-table" border="0" cellspacing="0" cellspacing="0"></table>
+					分数：
+					<span id="score">0<span>
+				</td>
+			</tr>
+		</table>
+		
+		
+	</div>
+</body>
+
+<script src="../js/jquery.min.js"></script>
+<script>
+
+var width=15;
+var height=15;
+var direction="";//移动方向
+var blockSourceArr = new Array();//全部的方块类型
+var willShowBlockArr = new Array();//要显示的方块
+
+var moveInterval;
+
+$(function(){
+	//初始化地图网格
+	initTable();
+	//初始化全部的方块类型
+	initBlockSourceArr();
+	
+	//往队列里面存放下次使用的方块
+	pushBlockArr();
+	
+	keydown();
+
+});
+
+//初始化地图网格
+function initTable(){
+	var mainTableHtml = "";
+	for(var y=0;y<=height;y++){
+		mainTableHtml+="<tr>";
+		for(var x=0;x<=width;x++){
+			mainTableHtml+="<td position-x='"+x+"' position-y='"+y+"'>";
+			mainTableHtml+="	<div class='square-div'></div>";
+			mainTableHtml+="</td>";
+		}
+		mainTableHtml+="</tr>";
+	}
+	$("#mainTable").html(mainTableHtml);
+	
+	var promptTableHtml = "";
+	for(var y=0;y<4;y++){
+		promptTableHtml+="<tr>";
+		for(var x=0;x<4;x++){
+			promptTableHtml+="<td position-x='"+x+"' position-y='"+y+"'>";
+			promptTableHtml+="	<div class='square-div'></div>";
+			promptTableHtml+="</td>";
+		}
+		promptTableHtml+="</tr>";
+	}
+	$("#promptTable").html(promptTableHtml);
+}
+
+//初始化全部的方块类型
+var addX = parseInt(width/2)-1;
+function initBlockSourceArr(){
+
+	var block_I = new Object();
+	block_I["type"] = "I";
+	block_I["position"] = moveRightX([
+		[{0:0},{0:1},{0:2},{0:3}],
+		[{0:0},{1:0},{2:0},{3:0}]
+	],addX);
+	
+	var block_O = new Object();
+	block_O["type"] = "O";
+	block_O["position"] = moveRightX([
+		[{0:0},{0:1},{1:0},{1:1}]
+	],addX);
+	
+	var block_L = new Object();
+	block_L["type"] = "L";
+	block_L["position"] = moveRightX([
+		[{0:0},{0:1},{0:2},{1:2}],
+		[{0:1},{1:1},{2:1},{2:0}],
+		[{0:0},{1:0},{1:1},{1:2}],
+		[{0:0},{1:0},{2:0},{0:1}]
+	],addX);
+	
+	var block_J = new Object();
+	block_J["type"] = "J";
+	block_J["position"] = moveRightX([
+		[{1:0},{1:1},{1:2},{0:2}],
+		[{0:0},{1:0},{2:0},{2:1}],
+		[{0:0},{1:0},{0:1},{0:2}],
+		[{0:0},{0:1},{1:1},{2:1}]
+	],addX);
+	
+	var block_S = new Object();
+	block_S["type"]="S";
+	block_S["position"] = moveRightX([
+		[{1:0},{2:0},{0:1},{1:1}],
+		[{0:0},{0:1},{1:1},{1:2}]
+	],addX);
+	
+	var block_Z = new Object();
+	block_Z["type"]="Z";
+	block_Z["position"] = moveRightX([
+		[{0:0},{1:0},{1:1},{2:1}],
+		[{0:1},{0:1},{1:0},{1:1}]
+	],addX);
+	
+	var block_T = new Object();
+	block_T["type"]="T";
+	block_T["position"] = moveRightX([
+		[{0:0},{1:0},{2:0},{1:1}],
+		[{0:0},{0:1},{0:2},{1:1}],
+		[{0:1},{1:1},{2:1},{1:0}],
+		[{1:0},{1:1},{1:2},{0:1}]
+	],addX);
+
+	blockSourceArr.push(block_I);
+	blockSourceArr.push(block_O);
+	blockSourceArr.push(block_L);
+	blockSourceArr.push(block_J);
+	blockSourceArr.push(block_S);
+	blockSourceArr.push(block_Z);
+	blockSourceArr.push(block_T);
+}
+
+function moveRightX(arr,addx){
+	var positionArr = new Array();
+	for(var i=0;i<arr.length;i++){
+		var arr1 = new Array();
+		for(var j=0;j<arr[i].length;j++){
+			var x = 0;
+			var y = 0;
+			$.each(arr[i][j], function(k,v){
+				x = formatNumber(k);
+				y = formatNumber(v);
+			});
+			x = x + formatNumber(addx);
+			var obj = new Object();
+			obj[x]=y;
+			arr1.push(obj);
+		}
+		positionArr.push(arr1);
+	}
+	return positionArr;
+}
+
+//往队列里面存放下次使用的方块
+function pushBlockArr(){
+	var c = willShowBlockArr.length;
+	for(var i=0;i<2-c;i++){
+		//获取随机方块
+		var willShowBlock = randomBlockArr();
+		willShowBlockArr.push(willShowBlock);
+	}
+	
+	//显示提示方块
+	$("#promptTable .square-div").removeClass("no-move-block");
+	var promptBlock = willShowBlockArr[0].position[blockArrIndex];
+	for(var i=0;i<promptBlock.length;i++){
+		var x = 0;
+		var y = 0;
+		$.each(promptBlock[i], function(k,v){
+			x = formatNumber(k)-addX;
+			y = formatNumber(v);
+		});
+		
+		$("#promptTable [position-x='"+x+"'][position-y='"+y+"'] .square-div").addClass("no-move-block");
+	}
+	
+}
+
+//获取随机方块
+function randomBlockArr(){
+
+	var blockArrIndex = Math.floor(Math.random()*blockSourceArr.length);
+	var willShowBlock = blockSourceArr[blockArrIndex];
+
+	return willShowBlock;
+}
+
+//初始化移动定时器
+function InitMoveBlockInterval(){
+
+	var thisObj = willShowBlockArr.shift();//拿出第一个方块
+	var thisTimeBlockArr = thisObj.position;
+	showBlock(thisTimeBlockArr[blockArrIndex]);
+	
+	//往队列里面补充新的方块
+	pushBlockArr();
+	
+	moveBlockInterval = setInterval(function(){
+	
+		//移动方块
+		thisTimeBlockArr = moveBlock(thisTimeBlockArr);
+		
+		//是否触碰到方块，或者底部
+		if(isStop(thisTimeBlockArr[blockArrIndex])){
+			
+			blockArrIndex=0;
+			
+			$(".move-block").addClass("no-move-block");
+			$(".move-block").removeClass("nmove-block");
+			
+			clearInterval(moveBlockInterval);
+			InitMoveBlockInterval();
+			
+			//加分
+			calculationIntegral();
+		}
+	}, 500);
+}
+
+//计算积分
+function calculationIntegral(){
+	var clearLineCount = 0;
+	var minY = 10000;
+	for(var y=0;y<=height;y++){
+		var count = 0;
+		//判断一行是否填满
+		for(var x=0;x<=height;x++){
+			if(getDiv(x,y).hasClass("no-move-block")){
+				count++;
+			}
+		}
+		if(count==width+1){
+			clearLineCount++;
+			if(y < minY){
+				minY=y;
+			}
+			$("#mainTable [position-y='"+y+"'] .square-div").removeClass("no-move-block");
+		}
+	}
+	
+	if(clearLineCount>0){
+		//统计清除行上面的方块
+		var pointerArr = new Array();
+		for(var y=0;y<minY;y++){
+			for(var x=0;x<=height;x++){
+				var divEle = getDiv(x,y);
+				if(divEle.hasClass("no-move-block")){
+					divEle.removeClass("no-move-block");
+				
+					var obj = new Object();
+					obj[x]=y;
+					pointerArr.push(obj);
+				}
+			}
+		}
+		
+		//向下移动
+		for(var i=0;i<pointerArr.length;i++){
+			var x = 0;
+			var y = 0;
+			$.each(pointerArr[i], function(k,v){
+				x = formatNumber(k);
+				y = formatNumber(v);
+			});
+			y = y+clearLineCount;
+			
+			var divEle = getDiv(x,y);
+			divEle.addClass("no-move-block");
+		}
+	}
+	
+	var score = formatNumber($("#score").html());
+	score = score + (clearLineCount*10);
+	$("#score").html(score);
+}
+
+var blockArrIndex=0;
+//移动方块
+function moveBlock(thisTimeBlockArr){
+	var blockArr = new Array();
+	A:for(var i=0;i<thisTimeBlockArr.length;i++){
+		var block = new Array();
+		
+		//是否触碰到左右边缘
+		var leftRight = isLeftRight(thisTimeBlockArr[i]);
+		
+		B:for(var j=0;j<thisTimeBlockArr[i].length;j++){
+		
+			var x = 0;
+			var y = 0;
+			
+			$.each(thisTimeBlockArr[i][j], function(k,v){
+				x = formatNumber(k);
+				y = formatNumber(v);
+			});
+			y++;
+			
+			if(direction=="left" && leftRight!="left"){
+				x--;
+			} else if(direction=="right" && leftRight!="right"){
+				x++;
+			} else if(direction=="down"){
+				//y++;
+			}
+			
+			var obj = new Object();
+			obj[x] = y;
+			block.push(obj);
+		}
+		blockArr.push(block);
+	}
+	
+	if(direction=="top"){
+		changeBlockIndex(blockArr);
+	}
+
+	direction = "";
+	
+	//显示方块
+	showBlock(blockArr[blockArrIndex]);
+	
+	return blockArr;
+}
+
+//变换方块
+function changeBlockIndex(blockArr){
+	var newIndex = blockArrIndex;
+	if(blockArrIndex < blockArr.length-1){
+		newIndex++;
+	} else{
+		newIndex = 0;
+	}
+	
+	if(!isStop(blockArr[newIndex])){
+		blockArrIndex = newIndex;
+	}
+}
+
+//是否触碰到方块，或者底部
+function isStop(thisTimeBlock){
+	var stopFlg = false;
+	A:for(var i=0;i<thisTimeBlock.length;i++){
+		var x = 0;
+		var y = 0;
+		$.each(thisTimeBlock[i], function(k,v){
+			x = formatNumber(k);
+			y = formatNumber(v);
+		});
+		//触碰到方块
+		if(getDiv(x,y+1).hasClass("no-move-block")){
+			stopFlg = true;
+			break A;
+		}
+		
+		//触碰到底部
+		if(y==height){
+			stopFlg = true;
+			break A;
+		}
+	}
+	return stopFlg;
+}
+
+function isLeftRight(thisTimeBlock){
+	var leftRight = "";
+	A:for(var i=0;i<thisTimeBlock.length;i++){
+		var x = 0;
+		var y = 0;
+		$.each(thisTimeBlock[i], function(k,v){
+			x = formatNumber(k);
+			y = formatNumber(v);
+		});
+		
+		if(x==0){
+			leftRight="left";
+		} else if(x==width){
+			leftRight="right";
+		}
+	}
+	return leftRight;
+}
+
+//显示方块
+function showBlock(thisTimeBlock){
+	//清除上次的方块
+	$(".square-div").removeClass("move-block");
+
+	for(var i=0;i<thisTimeBlock.length;i++){
+		$.each(thisTimeBlock[i], function(k,v){
+			x = formatNumber(k);
+			y = formatNumber(v);
+			var divEle = getDiv(x,y);
+			divEle.addClass("move-block");
+		});
+	}
+}
+
+function getDiv(x,y){
+	return $("#mainTable [position-x='"+x+"'][position-y='"+y+"'] .square-div");
+}
+
+function keydown(){
+	//↑38,↓40,←37,→39,Esc27
+	$(document).keydown(function(event){
+		var keyCode = event.keyCode
+		
+		if(keyCode=="37"){//左
+			direction="left";
+		} else if(keyCode=="39"){//右
+			direction="right";
+		} else if(keyCode=="40"){//下
+			direction="down";
+		} else if(keyCode=="38"){//上
+			direction="top";
+		} else if(keyCode=="27" && gameStatus=="start"){//停止游戏
+			gameStatus="stop";
+		} else if(keyCode=="27" && gameStatus=="stop"){//停止游戏
+			gameStatus="start";
+		}
+	});
+}
+
+function formatNumber(data){
+	if(data==""||data==null){
+		return 0;
+	}
+	return Number(data);
+}
+
+
+</script>
+</html>
