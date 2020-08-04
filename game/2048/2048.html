@@ -419,6 +419,7 @@
 </body>
 
 <script src="../js/jquery.min.js"></script>
+<script src="../js/array-expand.js"></script>
 <script>
 
 var source = [2,4,8,16,32,64,128,256,512,1024];
@@ -473,7 +474,7 @@ var pointeArround = {
 
 $(function(){
 	let moveBlock = createBlock();
-	move(moveBlock);
+	bindMoveEvent(moveBlock);
 });
 
 
@@ -496,12 +497,13 @@ function createBlock(){
 	let number = getRandom();
 	let ele = $("#promptDiv [position-y='2'][position-x='2']");
 	ele.find(".bar-horizontal").html(number);
+	ele.find(".bar-horizontal").addClass("bg-color");
 	return ele;
 }
 
 
 
-function move(ele){
+function bindMoveEvent(ele){
 	let thisNumber = ele.find(".bar-horizontal").html();
 	
 	let left = ele.offset().left;
@@ -515,7 +517,7 @@ function move(ele){
 			cloneEle = ele.clone();
 			cloneEle.css("position","");
 			cloneEle.css("z-index","");
-			//cloneEle.removeClass("bg-color");
+			cloneEle.find(".bar-horizontal").removeClass("bg-color");
 			cloneEle.find(".bar-horizontal").html("");
 			ele.after(cloneEle);
 			
@@ -543,7 +545,8 @@ function move(ele){
 					
 					//为复制的那个方块重新绑定事件
 					cloneEle.find(".bar-horizontal").html(thisNumber);
-					move(cloneEle);
+					cloneEle.find(".bar-horizontal").addClass("bg-color");
+					bindMoveEvent(cloneEle);
 				});
 			} else {
 				ele.animate({"left": divEle.offset().left, "top": divEle.offset().top},100,function(){
@@ -554,12 +557,12 @@ function move(ele){
 					divEle.find(".bar-horizontal").html(thisNumber);
 					divEle.find(".bar-horizontal").addClass("bg-color");
 					
-					//判断数字是否合并
-					numberMerge(divEle);
+					//方块移动
+					blockMove(divEle);
 					
 					//重新生成新的数字
 					let moveBlock = createBlock();
-					move(moveBlock);
+					bindMoveEvent(moveBlock);
 				});
 			}
 			$("#mainDiv .hexagon").off();
@@ -591,9 +594,9 @@ function arroundSameNumber(ele){
 	return willMergeElementArr;
 }
 
-//判断数字是否合并
-function numberMerge(ele){
-	//合并之后的数字
+//方块移动
+function blockMove(ele){
+	//要合并的数字
 	let num = Number(ele.find(".bar-horizontal").html());
 	
 	let willMergeElementArr = arroundSameNumber(ele);
@@ -601,12 +604,13 @@ function numberMerge(ele){
 		return false;
 	} else if(willMergeElementArr.length==1){
 		//当前元素合并到相连的元素
+		
+		//当前元素相连的元素
 		let arroundEle = willMergeElementArr[0];
 		let arr = arroundSameNumber(arroundEle);
 		if(arr==null){
 			return false;
 		} else if(arr.length==2){
-			num = num*2;
 			let arroundEle1;
 			let arroundEle2 = arr[0];
 			let arroundEle3 = arr[1];
@@ -631,6 +635,7 @@ function numberMerge(ele){
 			ele.animate({"left": arroundEle1.offset().left, "top": arroundEle1.offset().top},1000,function(){
 				ele.remove();
 			});
+			
 			/*****************************/
 			let cloneEle1 = arroundEle.clone();
 			cloneEle1.css("z-index","");
@@ -641,22 +646,43 @@ function numberMerge(ele){
 			arroundEle.css("position","absolute");
 			arroundEle.css("z-index","1");
 			arroundEle.animate({"left": arroundEle1.offset().left, "top": arroundEle1.offset().top},1000,function(){
-				score = score + 2;
 				arroundEle.remove();
-				arroundEle1.find(".bar-horizontal").html(num);
-				numberMerge(arroundEle1);
+				
+				//合并之后的数字
+				num = num*2;
+				numberMerge(arroundEle1, num);
+				
+				blockMove(arroundEle1);
+				
+				//显示分数
+				score = score + 2;
 				$("#score").html(score);
 			});
-		} else if(arr.length>2){
-			numberMerge(arroundEle);
 		}
 
 	} else if(willMergeElementArr.length>1) {
+		//合并之后的数字
 		num = num*2;
 		
-		//相连的元素合并到当前元素
+		let willMergeElementArr1 = new Array();
+		willMergeElementArr1.pushAll(willMergeElementArr);
+		
 		for(let i=0;i<willMergeElementArr.length;i++){
 			let arroundEle = willMergeElementArr[i];
+			let arr1 = arroundSameNumber(arroundEle);
+			if(arr1!=null && arr1.length>1){
+				for(let j=0;j<arr1.length;j++){
+					if(!willMergeElementArr1.contains(arr1[j])){
+						willMergeElementArr1.push(arr1[j]);
+					}
+				}
+				
+			}
+		}
+		
+		//相连的元素合并到当前元素
+		for(let i=0;i<willMergeElementArr1.length;i++){
+			let arroundEle = willMergeElementArr1[i];
 			
 			let cloneEle = arroundEle.clone();
 			cloneEle.css("z-index","");
@@ -667,20 +693,29 @@ function numberMerge(ele){
 			arroundEle.css("position","absolute");
 			arroundEle.css("z-index","1");
 			arroundEle.animate({"left": ele.offset().left, "top": ele.offset().top},1000,function(){
-				score = score + 1;
 				arroundEle.remove();
-				ele.find(".bar-horizontal").html(num);
-				if(i==willMergeElementArr.length-1){
-					numberMerge(ele);
+				
+				if(i==willMergeElementArr1.length-1){
+					numberMerge(ele, num);
+					blockMove(ele);
 				}
+				
+				//显示分数
+				score = score + 1;
 				$("#score").html(score);
 			});
 		}
+		
 	}
 	
 	if(num>maxNumber){
 		maxNumber = num;
 	}
+}
+
+//数字合并
+function numberMerge(ele, num){
+	ele.find(".bar-horizontal").html(num);
 }
 
 $.fn.extend({
