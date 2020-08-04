@@ -423,7 +423,7 @@
 <script>
 
 var source = [2,4,8,16,32,64,128,256,512,1024];
-var maxNumber = 2;
+var maxNumber = source[0];
 var score = 0;
 
 var pointeArround = {
@@ -596,8 +596,6 @@ function arroundSameNumber(ele){
 
 //方块移动
 function blockMove(ele){
-	//要合并的数字
-	let num = Number(ele.find(".bar-horizontal").html());
 	
 	let willMergeElementArr = arroundSameNumber(ele);
 	if(willMergeElementArr==null){
@@ -648,9 +646,7 @@ function blockMove(ele){
 			arroundEle.animate({"left": arroundEle1.offset().left, "top": arroundEle1.offset().top},1000,function(){
 				arroundEle.remove();
 				
-				//合并之后的数字
-				num = num*2;
-				numberMerge(arroundEle1, num);
+				numberMerge(arroundEle1);
 				
 				blockMove(arroundEle1);
 				
@@ -661,8 +657,6 @@ function blockMove(ele){
 		}
 
 	} else if(willMergeElementArr.length>1) {
-		//合并之后的数字
-		num = num*2;
 		
 		let willMergeElementArr1 = new Array();
 		willMergeElementArr1.pushAll(willMergeElementArr);
@@ -696,7 +690,7 @@ function blockMove(ele){
 				arroundEle.remove();
 				
 				if(i==willMergeElementArr1.length-1){
-					numberMerge(ele, num);
+					numberMerge(ele);
 					blockMove(ele);
 				}
 				
@@ -708,14 +702,63 @@ function blockMove(ele){
 		
 	}
 	
-	if(num>maxNumber){
-		maxNumber = num;
-	}
 }
 
 //数字合并
-function numberMerge(ele, num){
-	ele.find(".bar-horizontal").html(num);
+function numberMerge(ele){
+	//要合并的数字
+	let num = Number(ele.find(".bar-horizontal").html());
+	if(num==1024){
+		//合并之后的数字
+		ele.find(".bar-horizontal").html("☆");
+		
+		let x = ele.attr("position-x");
+		let y = ele.attr("position-y");
+		//当前元素相连的元素
+		let aroundArr = pointeArround[x+"-"+y];
+		let arr = new Array();
+		for(let i=0;i<aroundArr.length;i++){
+			let arroundX = aroundArr[i].x;
+			let arroundY = aroundArr[i].y;
+			let divEle = $("#mainDiv [position-x='"+arroundX+"'][position-y='"+arroundY+"']");
+			
+			if(divEle.find(".bar-horizontal").html()!=""){
+				arr.push(divEle);
+			}
+		}
+		
+		for(let i=0;i<arr.length;i++){
+			let arroundEle = arr[i];
+			let cloneEle = arroundEle.clone();
+			cloneEle.css("z-index","");
+			cloneEle.find(".bar-horizontal").removeClass("bg-color");
+			cloneEle.find(".bar-horizontal").html("");
+			arroundEle.after(cloneEle);
+			
+			arroundEle.css("position","absolute");
+			arroundEle.css("z-index","1");
+			arroundEle.animate({"left": ele.offset().left, "top": ele.offset().top},1000,function(){
+				arroundEle.remove();
+				
+				if(i==arr.length-1){
+					ele.css("z-index","");
+					ele.find(".bar-horizontal").removeClass("bg-color");
+					ele.find(".bar-horizontal").html("");
+				}
+				
+				score = score + 1;
+
+			});
+		}
+		maxNumber = 1024;
+	} else {
+		//合并之后的数字
+		num = num*2;
+		ele.find(".bar-horizontal").html(num);
+		if(num>maxNumber){
+			maxNumber = num;
+		}
+	}
 }
 
 $.fn.extend({
